@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   api:
-    runs-on: arc-runner-set
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -22,14 +22,14 @@ jobs:
         uses: .github/actions/build-push.yml@develop
         with:
           ecr_repository_name: ${{ vars.AWS_ECR_REPOSITORY_NAME || 'hook0-api' }}
-          runs_on: arc-runner-set
+          runs_on: ubuntu-latest
           dockerfile: api/Dockerfile
 
       - name: update-manifest-api-dev
         uses: .github/actions/update-manifest.yml@develop
         with:
           manifest_path: apps/dev/values/hook0-api.yaml
-          runs_on: arc-runner-set
+          runs_on: ubuntu-latest
 
   # build-push-frontend-dev:
   #   uses: .github/actions/build-push.yml
