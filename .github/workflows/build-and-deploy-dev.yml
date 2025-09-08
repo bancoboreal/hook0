@@ -19,14 +19,14 @@ jobs:
         uses: actions/checkout@v4
 
       - name: build-push-api-dev
-        uses: .github/actions/build-push.yml
+        uses: .github/actions/build-push.yml@develop
         with:
           ecr_repository_name: ${{ vars.AWS_ECR_REPOSITORY_NAME || 'hook0-api' }}
           runs_on: arc-runner-set
           dockerfile: api/Dockerfile
 
       - name: update-manifest-api-dev
-        uses: .github/actions/update-manifest.yml
+        uses: .github/actions/update-manifest.yml@develop
         with:
           manifest_path: apps/dev/values/hook0-api.yaml
           runs_on: arc-runner-set

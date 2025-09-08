@@ -10,68 +10,87 @@ permissions:
   id-token: write
 
 jobs:
-  build-push-api-prod:
-    uses: .github/actions/build-push.yml
-    with:
-      ecr_repository_name: ${{ vars.AWS_ECR_REPOSITORY_NAME || 'hook0-api' }}
-      runs_on: arc-runner-set
-      dockerfile: api/Dockerfile
-    secrets:
-      AWS_ECR_REGISTRY: ${{ secrets.AWS_ECR_REGISTRY }}
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-      AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+  api:
+    runs-on: arc-runner-set
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-  update-manifest-api-prod:
-    uses: .github/actions/update-manifest.yml
-    needs: build-push-api-prod
-    with:
-      manifest_path: apps/prod/values/hook0-api.yaml
-      runs_on: arc-runner-set
-    secrets:
-      AWS_ECR_REGISTRY: ${{ secrets.AWS_ECR_REGISTRY }}
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      - name: build-push-api-prod
+        uses: .github/actions/build-push.yml@master
+        with:
+          ecr_repository_name: ${{ vars.AWS_ECR_REPOSITORY_NAME || 'hook0-api' }}
+          runs_on: arc-runner-set
+          dockerfile: api/Dockerfile
 
-  build-push-frontend-prod:
-    uses: .github/actions/build-push.yml
-    with:
-      ecr_repository_name: ${{ vars.AWS_ECR_REPOSITORY_NAME || 'hook0-frontend' }}
-      runs_on: arc-runner-set
-      dockerfile: frontend/Dockerfile
-    secrets:
-      AWS_ECR_REGISTRY: ${{ secrets.AWS_ECR_REGISTRY }}
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-      AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+      - name: update-manifest-api-prod
+        uses: .github/actions/update-manifest.yml@master
+        with:
+          manifest_path: apps/prod/values/hook0-api.yaml
+          runs_on: arc-runner-set
 
-  update-manifest-frontend-prod:
-    uses: .github/actions/update-manifest.yml
-    needs: build-push-frontend-prod
-    with:
-      manifest_path: apps/prod/values/hook0-frontend.yaml
-      runs_on: arc-runner-set
-    secrets:
-      AWS_ECR_REGISTRY: ${{ secrets.AWS_ECR_REGISTRY }}
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+  # build-push-api-prod:
+  #   uses: .github/actions/build-push.yml
+  #   with:
+  #     ecr_repository_name: ${{ vars.AWS_ECR_REPOSITORY_NAME || 'hook0-api' }}
+  #     runs_on: arc-runner-set
+  #     dockerfile: api/Dockerfile
+  #   secrets:
+  #     AWS_ECR_REGISTRY: ${{ secrets.AWS_ECR_REGISTRY }}
+  #     AWS_REGION: ${{ secrets.AWS_REGION }}
+  #     AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
 
-  build-push-output-worker-prod:
-    uses: .github/actions/build-push.yml
-    with:
-      ecr_repository_name: ${{ vars.AWS_ECR_REPOSITORY_NAME || 'hook0-output-worker' }}
-      runs_on: arc-runner-set
-      dockerfile: output-worker/Dockerfile
-    secrets:
-      AWS_ECR_REGISTRY: ${{ secrets.AWS_ECR_REGISTRY }}
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-      AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+  # update-manifest-api-prod:
+  #   uses: .github/actions/update-manifest.yml
+  #   needs: build-push-api-prod
+  #   with:
+  #     manifest_path: apps/prod/values/hook0-api.yaml
+  #     runs_on: arc-runner-set
+  #   secrets:
+  #     AWS_ECR_REGISTRY: ${{ secrets.AWS_ECR_REGISTRY }}
+  #     AWS_REGION: ${{ secrets.AWS_REGION }}
+  #     GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
-  update-manifest-output-worker-prod:
-    uses: .github/actions/update-manifest.yml
-    needs: build-push-output-worker-prod
-    with:
-      manifest_path: apps/prod/values/hook0-output-worker.yaml
-      runs_on: arc-runner-set
-    secrets:
-      AWS_ECR_REGISTRY: ${{ secrets.AWS_ECR_REGISTRY }}
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+  # build-push-frontend-prod:
+  #   uses: .github/actions/build-push.yml
+  #   with:
+  #     ecr_repository_name: ${{ vars.AWS_ECR_REPOSITORY_NAME || 'hook0-frontend' }}
+  #     runs_on: arc-runner-set
+  #     dockerfile: frontend/Dockerfile
+  #   secrets:
+  #     AWS_ECR_REGISTRY: ${{ secrets.AWS_ECR_REGISTRY }}
+  #     AWS_REGION: ${{ secrets.AWS_REGION }}
+  #     AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+
+  # update-manifest-frontend-prod:
+  #   uses: .github/actions/update-manifest.yml
+  #   needs: build-push-frontend-prod
+  #   with:
+  #     manifest_path: apps/prod/values/hook0-frontend.yaml
+  #     runs_on: arc-runner-set
+  #   secrets:
+  #     AWS_ECR_REGISTRY: ${{ secrets.AWS_ECR_REGISTRY }}
+  #     AWS_REGION: ${{ secrets.AWS_REGION }}
+  #     GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+  # build-push-output-worker-prod:
+  #   uses: .github/actions/build-push.yml
+  #   with:
+  #     ecr_repository_name: ${{ vars.AWS_ECR_REPOSITORY_NAME || 'hook0-output-worker' }}
+  #     runs_on: arc-runner-set
+  #     dockerfile: output-worker/Dockerfile
+  #   secrets:
+  #     AWS_ECR_REGISTRY: ${{ secrets.AWS_ECR_REGISTRY }}
+  #     AWS_REGION: ${{ secrets.AWS_REGION }}
+  #     AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+
+  # update-manifest-output-worker-prod:
+  #   uses: .github/actions/update-manifest.yml
+  #   needs: build-push-output-worker-prod
+  #   with:
+  #     manifest_path: apps/prod/values/hook0-output-worker.yaml
+  #     runs_on: arc-runner-set
+  #   secrets:
+  #     AWS_ECR_REGISTRY: ${{ secrets.AWS_ECR_REGISTRY }}
+  #     AWS_REGION: ${{ secrets.AWS_REGION }}
+  #     GH_TOKEN: ${{ secrets.GH_TOKEN }}
