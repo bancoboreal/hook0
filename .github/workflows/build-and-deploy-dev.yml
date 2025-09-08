@@ -5,17 +5,16 @@ on:
     branches: [develop]
   workflow_dispatch:
 
-env: {}
+env:
+  APP_NAME: hook0-api
 
 permissions:
   contents: read
   id-token: write
 
 jobs:
-  api-build-push:
+  build-push:
     runs-on: ubuntu-latest
-    env:
-      APP_NAME: hook0-api
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -64,18 +63,17 @@ jobs:
           echo "📦 Image: ${{ steps.meta.outputs.image_uri }}"
           echo "🏷️ Tag: ${{ steps.meta.outputs.image_tag }}"
 
-  api-update-manifest:
+  update-manifest:
     runs-on: ubuntu-latest
-    env:
-      APP_NAME: hook0-api
+    needs: build-push
     outputs:
       image_tag: ${{ steps.meta.outputs.image_tag }}
       image_uri: ${{ steps.meta.outputs.image_uri }}
     steps:
       - name: Install tools
         run: |
-          apt update;
-          apt install -y git wget;
+          sudo apt update;
+          sudo apt install -y git wget;
           wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/local/bin/yq;
           chmod +x /usr/local/bin/yq;
 
