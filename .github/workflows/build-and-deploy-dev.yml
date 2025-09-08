@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   build-push-api-dev:
-    uses: bancoboreal/shared-actions/.github/workflows/build-push.yml@main
+    uses: .github/actions/build-push.yml
     with:
       ecr_repository_name: ${{ vars.AWS_ECR_REPOSITORY_NAME || 'hook0-api' }}
       runs_on: arc-runner-set
@@ -24,7 +24,7 @@ jobs:
       AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
 
   update-manifest-api-dev:
-    uses: bancoboreal/shared-actions/.github/workflows/update-manifest.yml@main
+    uses: .github/actions/update-manifest.yml
     needs: build-push-api-dev
     with:
       manifest_path: apps/dev/values/hook0-api.yaml
@@ -35,7 +35,7 @@ jobs:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
   build-push-frontend-dev:
-    uses: bancoboreal/shared-actions/.github/workflows/build-push.yml@main
+    uses: .github/actions/build-push.yml
     with:
       ecr_repository_name: ${{ vars.AWS_ECR_REPOSITORY_NAME || 'hook0-frontend' }}
       runs_on: arc-runner-set
@@ -46,7 +46,7 @@ jobs:
       AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
 
   update-manifest-frontend-dev:
-    uses: bancoboreal/shared-actions/.github/workflows/update-manifest.yml@main
+    uses: .github/actions/update-manifest.yml
     needs: build-push-frontend-dev
     with:
       manifest_path: apps/dev/values/hook0-frontend.yaml
@@ -57,7 +57,7 @@ jobs:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
   build-push-output-worker-dev:
-    uses: bancoboreal/shared-actions/.github/workflows/build-push.yml@main
+    uses: .github/actions/build-push.yml
     with:
       ecr_repository_name: ${{ vars.AWS_ECR_REPOSITORY_NAME || 'hook0-output-worker' }}
       runs_on: arc-runner-set
@@ -68,7 +68,7 @@ jobs:
       AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
 
   update-manifest-output-worker-dev:
-    uses: bancoboreal/shared-actions/.github/workflows/update-manifest.yml@main
+    uses: .github/actions/update-manifest.yml
     needs: build-push-output-worker-dev
     with:
       manifest_path: apps/dev/values/hook0-output-worker.yaml

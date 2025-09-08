@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   build-push-api-prod:
-    uses: bancoboreal/shared-actions/.github/workflows/build-push.yml@main
+    uses: .github/actions/build-push.yml
     with:
       ecr_repository_name: ${{ vars.AWS_ECR_REPOSITORY_NAME || 'hook0-api' }}
       runs_on: arc-runner-set
@@ -22,7 +22,7 @@ jobs:
       AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
 
   update-manifest-api-prod:
-    uses: bancoboreal/shared-actions/.github/workflows/update-manifest.yml@main
+    uses: .github/actions/update-manifest.yml
     needs: build-push-api-prod
     with:
       manifest_path: apps/prod/values/hook0-api.yaml
@@ -33,7 +33,7 @@ jobs:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
   build-push-frontend-prod:
-    uses: bancoboreal/shared-actions/.github/workflows/build-push.yml@main
+    uses: .github/actions/build-push.yml
     with:
       ecr_repository_name: ${{ vars.AWS_ECR_REPOSITORY_NAME || 'hook0-frontend' }}
       runs_on: arc-runner-set
@@ -44,7 +44,7 @@ jobs:
       AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
 
   update-manifest-frontend-prod:
-    uses: bancoboreal/shared-actions/.github/workflows/update-manifest.yml@main
+    uses: .github/actions/update-manifest.yml
     needs: build-push-frontend-prod
     with:
       manifest_path: apps/prod/values/hook0-frontend.yaml
@@ -55,7 +55,7 @@ jobs:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
   build-push-output-worker-prod:
-    uses: bancoboreal/shared-actions/.github/workflows/build-push.yml@main
+    uses: .github/actions/build-push.yml
     with:
       ecr_repository_name: ${{ vars.AWS_ECR_REPOSITORY_NAME || 'hook0-output-worker' }}
       runs_on: arc-runner-set
@@ -66,7 +66,7 @@ jobs:
       AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
 
   update-manifest-output-worker-prod:
-    uses: bancoboreal/shared-actions/.github/workflows/update-manifest.yml@main
+    uses: .github/actions/update-manifest.yml
     needs: build-push-output-worker-prod
     with:
       manifest_path: apps/prod/values/hook0-output-worker.yaml

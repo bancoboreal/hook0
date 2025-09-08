@@ -1,0 +1,88 @@
+name: Update kubernetes-manifests 
+
+on:
+  workflow_call:
+    inputs:
+      manifest_path:
+        description: Manifest path in the kubernetes-manifests repo
+        required: true
+        type: string
+      image_tag:
+        description: Custom image tag (optional, defaults to github.sha)
+        required: false
+        type: string
+      runs_on:
+        description: Custom Actions runner (optional, defaults to ubuntu-latest)
+        required: false
+        type: string
+        default: ubuntu-latest
+    secrets:
+      AWS_REGION:
+        required: true
+      AWS_ECR_REGISTRY:
+        required: true
+      GH_TOKEN:
+        required: true
+    outputs:
+      image_tag:
+        description: "The tag of the built image"
+        value: ${{ jobs.build.outputs.image_tag }}
+
+permissions:
+  contents: read
+  id-token: write
+
+env: {}
+
+jobs:
+  build:
+    name: Update Kubernetes app image tag
+    runs-on: ${{ inputs.runs_on }}
+    container: ubuntu:latest
+    outputs:
+      image_tag: ${{ steps.meta.outputs.image_tag }}
+      image_uri: ${{ steps.meta.outputs.image_uri }}
+    steps:
+      - name: Install tools
+        run: |
+          apt update;
+          apt install -y git wget;
+          wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/local/bin/yq;
+          chmod +x /usr/local/bin/yq;
+          
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          repository: "${{ github.repository_owner }}/kubernetes-manifests"
+          ref: main
+          token: ${{ secrets.GH_TOKEN }}
+
+      - name: Set safe directory
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE";
+
+      - name: Set image metadata
+        id: meta
+        run: |
+          IMAGE_TAG="${{ inputs.image_tag || github.sha }}";
+
+          echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT;
+
+          echo "🏗️ Building image with tag: ${IMAGE_TAG}";
+          echo "📦 Full image URI: ${IMAGE_URI}";
+          
+      - name: Edit values file
+        run: |
+          yq -i '.image.tag = "${{ steps.meta.outputs.image_tag }}"' ${{ inputs.manifest_path }};
+          
+      - name: Commit and push to kubernetes-manifests
+        uses: actions-js/push@master
+        with:
+          repository: "${{ github.repository_owner }}/kubernetes-manifests"
+          branch: main
+          github_token: ${{ secrets.GH_TOKEN }}
+
+      - name: Build summary
+        run: |
+          echo "✅ Deploy completed successfully!"
+          echo "⚙️ App: ${{ inputs.manifest_path }}"
+          echo "🏷️ Tag: ${{ steps.meta.outputs.image_tag }}"
