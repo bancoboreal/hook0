@@ -1,0 +1,115 @@
+name: DEV | Build to ECR and deploy to EKS
+
+on:
+  push:
+    branches: [develop]
+  workflow_dispatch:
+
+env:
+  APP_NAME: hook0-output-worker
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  build-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ secrets.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set image metadata
+        id: meta
+        run: |
+          IMAGE_TAG="${{ inputs.image_tag || github.sha }}"
+          IMAGE_URI="${{ secrets.AWS_ECR_REGISTRY }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ env.APP_NAME }}:${IMAGE_TAG}"
+
+          echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "image_uri=${IMAGE_URI}" >> $GITHUB_OUTPUT
+
+          echo "🏗️ Building image with tag: ${IMAGE_TAG}"
+          echo "📦 Full image URI: ${IMAGE_URI}"
+
+      - name: Build and push Docker image with cache
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: output-worker/Dockerfile
+          push: true
+          platforms: linux/amd64
+          tags: |
+            ${{ steps.meta.outputs.image_uri }}
+            ${{ secrets.AWS_ECR_REGISTRY }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ env.APP_NAME }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build summary
+        run: |
+          echo "✅ Build completed successfully!"
+          echo "📦 Image: ${{ steps.meta.outputs.image_uri }}"
+          echo "🏷️ Tag: ${{ steps.meta.outputs.image_tag }}"
+
+  update-manifest:
+    runs-on: ubuntu-latest
+    needs: build-push
+    outputs:
+      image_tag: ${{ steps.meta.outputs.image_tag }}
+      image_uri: ${{ steps.meta.outputs.image_uri }}
+    steps:
+      - name: Install tools
+        run: |
+          sudo apt update;
+          sudo apt install -y git wget;
+          wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/local/bin/yq;
+          chmod +x /usr/local/bin/yq;
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          repository: "${{ github.repository_owner }}/kubernetes-manifests"
+          ref: main
+          token: ${{ secrets.GH_TOKEN }}
+
+      - name: Set safe directory
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE";
+
+      - name: Set image metadata
+        id: meta
+        run: |
+          IMAGE_TAG="${{ inputs.image_tag || github.sha }}";
+
+          echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT;
+
+          echo "🏗️ Building image with tag: ${IMAGE_TAG}";
+          echo "📦 Full image URI: ${IMAGE_URI}";
+
+      - name: Edit values file
+        run: |
+          yq -i '.image.tag = "${{ steps.meta.outputs.image_tag }}"' apps/dev/values/${{ env.APP_NAME }}.yaml;
+
+      - name: Commit and push to kubernetes-manifests
+        uses: actions-js/push@master
+        with:
+          repository: "${{ github.repository_owner }}/kubernetes-manifests"
+          branch: main
+          github_token: ${{ secrets.GH_TOKEN }}
+
+      - name: Deploy summary
+        run: |
+          echo "✅ Deploy completed successfully!"
+          echo "⚙️ App: ${{ inputs.manifest_path }}"
+          echo "🏷️ Tag: ${{ steps.meta.outputs.image_tag }}"
