@@ -1,4 +1,4 @@
-name: PROD | Build to ECR and deploy to EKS
+name: api | PROD | Build to ECR and deploy to EKS
 
 on:
   workflow_dispatch:
