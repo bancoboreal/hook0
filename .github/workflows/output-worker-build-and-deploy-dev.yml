@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 env:
-  APP_NAME: hook0-api
+  APP_NAME: hook0-output-worker
 
 permissions:
   contents: read
@@ -48,7 +48,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: api/Dockerfile
+          file: output-worker/Dockerfile
           push: true
           platforms: linux/amd64
           tags: |
@@ -113,47 +113,3 @@ jobs:
           echo "✅ Deploy completed successfully!"
           echo "⚙️ App: ${{ inputs.manifest_path }}"
           echo "🏷️ Tag: ${{ steps.meta.outputs.image_tag }}"
-
-  # build-push-frontend-dev:
-  #   uses: .github/actions/build-push.yml
-  #   with:
-  #     ecr_repository_name: ${{ vars.AWS_ECR_REPOSITORY_NAME || 'hook0-frontend' }}
-  #     runs_on: arc-runner-set
-  #     dockerfile: frontend/Dockerfile
-  #   secrets:
-  #     AWS_ECR_REGISTRY: ${{ secrets.AWS_ECR_REGISTRY }}
-  #     AWS_REGION: ${{ secrets.AWS_REGION }}
-  #     AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
-
-  # update-manifest-frontend-dev:
-  #   uses: .github/actions/update-manifest.yml
-  #   needs: build-push-frontend-dev
-  #   with:
-  #     manifest_path: apps/dev/values/hook0-frontend.yaml
-  #     runs_on: arc-runner-set
-  #   secrets:
-  #     AWS_ECR_REGISTRY: ${{ secrets.AWS_ECR_REGISTRY }}
-  #     AWS_REGION: ${{ secrets.AWS_REGION }}
-  #     GH_TOKEN: ${{ secrets.GH_TOKEN }}
-
-  # build-push-output-worker-dev:
-  #   uses: .github/actions/build-push.yml
-  #   with:
-  #     ecr_repository_name: ${{ vars.AWS_ECR_REPOSITORY_NAME || 'hook0-output-worker' }}
-  #     runs_on: arc-runner-set
-  #     dockerfile: output-worker/Dockerfile
-  #   secrets:
-  #     AWS_ECR_REGISTRY: ${{ secrets.AWS_ECR_REGISTRY }}
-  #     AWS_REGION: ${{ secrets.AWS_REGION }}
-  #     AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
-
-  # update-manifest-output-worker-dev:
-  #   uses: .github/actions/update-manifest.yml
-  #   needs: build-push-output-worker-dev
-  #   with:
-  #     manifest_path: apps/dev/values/hook0-output-worker.yaml
-  #     runs_on: arc-runner-set
-  #   secrets:
-  #     AWS_ECR_REGISTRY: ${{ secrets.AWS_ECR_REGISTRY }}
-  #     AWS_REGION: ${{ secrets.AWS_REGION }}
-  #     GH_TOKEN: ${{ secrets.GH_TOKEN }}
