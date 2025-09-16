@@ -1,6 +1,4 @@
 name: api | DEV | Build to ECR and deploy to EKS
-:
--
 
 on:
   push:
