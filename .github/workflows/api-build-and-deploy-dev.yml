@@ -1,4 +1,6 @@
 name: api | DEV | Build to ECR and deploy to EKS
+:
+-
 
 on:
   push:
@@ -51,6 +53,7 @@ jobs:
           file: api/Dockerfile
           push: true
           platforms: linux/amd64
+          build-args: FEATURES="reqwest-rustls-tls-webpki-roots"
           tags: |
             ${{ steps.meta.outputs.image_uri }}
             ${{ secrets.AWS_ECR_REGISTRY }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ env.APP_NAME }}:latest
